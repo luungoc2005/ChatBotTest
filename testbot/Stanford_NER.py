@@ -13,12 +13,23 @@ from nltk.tree import Tree
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
+def load_stanford_tagger():
+  BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+  STANDFORD_NER = os.path.join(BASE_DIR, 'stanford-ner-2017-06-09/')
+  return StanfordNERTagger(
+          os.path.join(STANDFORD_NER, 'classifiers/english.conll.4class.distsim.crf.ser.gz'),
+          os.path.join(STANDFORD_NER, 'stanford-ner.jar'),
+          encoding='utf-8')
+
 class Stanford_NER_Chunker(BaseEstimator, TransformerMixin):
 
-  def __init__(self, punct=None):
+  def __init__(self, punct=None, tagger=None):
     self.punct = punct or set(string.punctuation)
-    self.BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    self.STANDFORD_NER = os.path.join(self.BASE_DIR, 'stanford-ner-2017-06-09/')
+    
+    if (tagger == None):
+      self.st_tagger = load_stanford_tagger()
+    else:
+      self.st_tagger = tagger
 
   def fit(self, X, y=None):
     return self
@@ -73,9 +84,5 @@ class Stanford_NER_Chunker(BaseEstimator, TransformerMixin):
 
   # Stanford NER tagger    
   def stanford_tagger(self, token_text):
-    st = StanfordNERTagger(
-      os.path.join(self.STANDFORD_NER, 'classifiers/english.all.3class.distsim.crf.ser.gz'),
-      os.path.join(self.STANDFORD_NER, 'stanford-ner.jar'),
-      encoding='utf-8')
-    ne_tagged = st.tag(token_text)
+    ne_tagged = self.st_tagger.tag(token_text)
     return(ne_tagged)
