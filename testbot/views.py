@@ -21,13 +21,22 @@ def index(request):
   return render(request, 'index.html', response)
 
 def examples(request):
+  custom_query = request.GET.get('query')
+
   response = {
     'examples': []
   }
-  for example in Example.objects.all():
-    new_example = {
-      'text': example.text,
-      'transform': tokenize_text(example.text)
-    }
-    response['examples'].append(new_example)
+
+  if custom_query == None:
+    for example in Example.objects.all():
+      new_example = {
+        'text': example.text,
+        'transform': tokenize_text(example.text)
+      }
+      response['examples'].append(new_example)
+  else:
+    response['examples'].append({
+      'text': custom_query,
+      'transform': tokenize_text(custom_query)
+    })
   return render(request, 'examples.html', response)

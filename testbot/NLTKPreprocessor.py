@@ -45,7 +45,7 @@ class NLTKPreprocessor(BaseEstimator, TransformerMixin):
           continue
 
         lemma = self.lemmatize(token, tag)
-        yield lemma + ':' + tag
+        yield lemma
 
   def lemmatize(self, token, tag):
     tag = {
