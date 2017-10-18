@@ -17,7 +17,7 @@ def load_stanford_tagger():
   BASE_DIR = os.path.dirname(os.path.abspath(__file__))
   STANDFORD_NER = os.path.join(BASE_DIR, 'stanford-ner-2017-06-09/')
   return StanfordNERTagger(
-          os.path.join(STANDFORD_NER, 'classifiers/english.conll.4class.distsim.crf.ser.gz'),
+          os.path.join(STANDFORD_NER, 'classifiers/english.muc.7class.distsim.crf.ser.gz'),
           os.path.join(STANDFORD_NER, 'stanford-ner.jar'),
           encoding='utf-8')
 

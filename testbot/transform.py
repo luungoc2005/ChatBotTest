@@ -20,12 +20,12 @@ def identity(arg):
 
 def tokenize_text(text):
   global STOPWORDS, STANFORD_TAGGER
-  preprocessor = NLTKPreprocessor(stopwords=STOPWORDS)
-  chunker = Stanford_NER_Chunker()
-  # chunker = NLTK_NER_Chunker()
+  # chunker = Stanford_NER_Chunker()
+  chunker = NLTK_NER_Chunker()
   # preprocessor = NLTKPreprocessor() # default stopwords
   if len(STOPWORDS) == 0:
     STOPWORDS = load_stopwords()
+  preprocessor = NLTKPreprocessor(stopwords=STOPWORDS)
   # vectorizer = TfidfVectorizer(tokenizer=identity, preprocessor=None, lowercase=False)
   
   preprocessed = preprocessor.transform([text])
@@ -35,3 +35,14 @@ def tokenize_text(text):
     'entities': chunked
   }
   return json.dumps(data, sort_keys=True, indent=4)
+
+def test_transform(data):
+  global STOPWORDS
+  if len(STOPWORDS) == 0:
+    STOPWORDS = load_stopwords()
+  preprocessor = NLTKPreprocessor(stopwords=STOPWORDS)
+  vectorizer = TfidfVectorizer(tokenizer=identity, preprocessor=None, lowercase=False)
+  
+  preprocessed = preprocessor.fit_transform(data)
+  
+  return vectorizer.fit_transform(preprocessed)

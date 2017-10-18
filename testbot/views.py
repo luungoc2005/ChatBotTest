@@ -1,8 +1,8 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from .models import Intent, Example
 
-from .transform import tokenize_text
+from .transform import tokenize_text, test_transform
 
 # Create your views here.
 
@@ -21,6 +21,16 @@ def index(request):
   return render(request, 'index.html', response)
 
 def examples(request):
+  if request.content_type == 'application/json':
+    examples = [
+      {
+        'id': example.id,
+        'text': example.text,
+      }
+      for example in Example.objects.all()
+    ]
+    return JsonResponse(examples)
+
   custom_query = request.GET.get('query')
 
   response = {
@@ -40,3 +50,11 @@ def examples(request):
       'transform': tokenize_text(custom_query)
     })
   return render(request, 'examples.html', response)
+
+def test(request):
+  examples = list(Example.objects.all())
+  response = {
+    'data': test_transform([example.text for example in examples]),
+    'size': len(examples)
+  }
+  return render(request, 'test.html', response)
