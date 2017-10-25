@@ -13,9 +13,10 @@ from sklearn.base import BaseEstimator, TransformerMixin
 class NLTKPreprocessor(BaseEstimator, TransformerMixin):
 
     def __init__(self, stopwords=None, punct=None,
-                 lower=True, strip=True):
+                 lower=True, strip=True, ignore_type=['N']):
         self.lower = lower
         self.strip = strip
+        self.ignore_type = ignore_type
         self.stopwords = stopwords or set(sw.words('english'))
         self.punct = punct or set(string.punctuation)
         self.lemmatizer = WordNetLemmatizer()
@@ -45,10 +46,10 @@ class NLTKPreprocessor(BaseEstimator, TransformerMixin):
                 if all(char in self.punct for char in token):
                     continue
 
-                lemma = self.lemmatize(token, tag)
+                lemma = self.lemmatize(token, tag, self.ignore_type)
                 yield lemma
 
-    def lemmatize(self, token, tag, ignore=['N']):
+    def lemmatize(self, token, tag, ignore_type=['N']):
         tag = {
             'N': wn.NOUN,
             'V': wn.VERB,
@@ -57,7 +58,7 @@ class NLTKPreprocessor(BaseEstimator, TransformerMixin):
         }.get(tag[0], wn.NOUN)
 
         # Ignore nouns by default to account for plurals
-        if tag in ignore:
+        if tag in ignore_type:
             return token
         else:
             return self.lemmatizer.lemmatize(token, tag)

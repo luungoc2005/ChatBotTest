@@ -38,7 +38,9 @@ def identity(arg):
     return arg
 
 
-def build_and_evaluate(x, y, classifier=None, evaluate=True, outpath=None):
+def build_and_evaluate(x, y,
+                       classifier=None, evaluate=True, outpath=None,
+                       ignore_type=['N']):
     @timeit
     def build(classifier, X, y=None):
         global STOPWORDS
@@ -53,7 +55,8 @@ def build_and_evaluate(x, y, classifier=None, evaluate=True, outpath=None):
             STOPWORDS = load_stopwords()
 
         model = Pipeline([
-            ('preprocessor', NLTKPreprocessor(stopwords=STOPWORDS)),
+            ('preprocessor', NLTKPreprocessor(
+                stopwords=STOPWORDS, ignore_type=ignore_type)),
             ('vectorizer', TfidfVectorizer(
                 tokenizer=identity, preprocessor=None, lowercase=False
             )),
@@ -107,7 +110,7 @@ def build_all(outpath=None):
     ],
         [
             item['topic'] for item in data
-    ], evaluate=False)
+    ], evaluate=False, ignore_type=[])
 
     model['topics'] = {}
     for topic in list(Topic.objects.all()):
@@ -171,6 +174,7 @@ def test_model(text=''):
     intent_model = model['topics'][topic]
     intent = result_from_model(intent_model, text, 'Intent')
     print("\nFinal intent: %s" % intent)
+
 
 def run_input_test():
     user_msg = ''
