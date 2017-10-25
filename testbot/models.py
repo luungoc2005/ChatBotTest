@@ -26,10 +26,15 @@ class Example(models.Model):
         return self.text
 
 
-class Entities(models.Model):
-    example = models.ForeignKey(Example, on_delete=models.CASCADE)
-    text = models.CharField(max_length=500)
-    tags = models.CharField(max_length=500)
+class EntityTypes(models.Model):
+    name = models.CharField(max_length=64, blank=False, null=False)
+    payload = models.CharField(max_length=2048, blank=True, null=True)
 
     def __str__(self):
-        return self.text
+        return self.name
+
+
+class IntentEntities(models.Model):
+    intent = models.ForeignKey(Intent, on_delete=models.CASCADE)
+    entity = models.ForeignKey(EntityTypes, on_delete=models.CASCADE)
+    payload = models.CharField(max_length=2048, blank=True, null=True)
