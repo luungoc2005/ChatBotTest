@@ -171,3 +171,10 @@ def test_model(text=''):
     intent_model = model['topics'][topic]
     intent = result_from_model(intent_model, text, 'Intent')
     print("\nFinal intent: %s" % intent)
+
+def run_input_test():
+    user_msg = ''
+    print("Type 'exit' to stop the program:")
+    while not user_msg in ['exit', 'exit()']:
+        user_msg = input("User message: ")
+        test_model(user_msg)
