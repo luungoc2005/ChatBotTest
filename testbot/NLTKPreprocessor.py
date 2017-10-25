@@ -56,6 +56,7 @@ class NLTKPreprocessor(BaseEstimator, TransformerMixin):
             'J': wn.ADJ
         }.get(tag[0], wn.NOUN)
 
+        # Ignore nouns by default to account for plurals
         if tag in ignore:
             return token
         else:
