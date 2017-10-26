@@ -24,6 +24,7 @@ def stanford_server_running():
 
 def load_stanford_tagger():
     if not stanford_server_running():
+        CLASSIFIER_FILE = 'english.muc.7class.distsim.crf.ser.gz'
         process = subprocess.Popen([
             'java',
             '-mx400m',
@@ -33,14 +34,20 @@ def load_stanford_tagger():
             '-port',
             '9199',
             '-loadClassifier',
-            'classifiers/english.muc.7class.distsim.crf.ser.gz'
-        ], cwd=os.path.join(BASE_DIR, 'stanford-ner-2017-06-09/'))
+            'classifiers/' + CLASSIFIER_FILE
+        ], \
+        cwd=os.path.join(BASE_DIR, 'stanford-ner-2017-06-09/'), \
+        stdout=subprocess.PIPE)
         # '-tokenizerFactory',
         # 'edu.stanford.nlp.process.WhitespaceTokenizer',
         # '-tokenizerOptions',
         # 'tokenizeNLs=false'
         print('Stanford server started with PID %s' % process.pid)
 
+        for line in iter(process.stdout.readline, ''):
+            print(line)
+            if CLASSIFIER_FILE in line:
+                return
 
 @contextmanager
 def tcpip4_socket(host, port):
