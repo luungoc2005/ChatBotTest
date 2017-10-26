@@ -44,6 +44,9 @@ def load_stanford_tagger():
         # 'tokenizeNLs=false'
         print('Stanford server started with PID %s' % process.pid)
 
+        # The stanford process will print out something like this line
+        # Loading classifier from classifiers/english.muc.7class.distsim.crf.ser.gz ... done [23.4 sec].
+        # Wait for that line to continue execution to avoid connection refused errors
         for line in iter(process.stdout.readline, ''):
             print(line)
             if CLASSIFIER_FILE in line:
