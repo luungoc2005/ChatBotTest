@@ -10,42 +10,14 @@ from nltk import pos_tag
 from nltk.tag import StanfordNERTagger
 from nltk.chunk import ne_chunk, conlltags2tree
 from nltk.tree import Tree
-from ner import SocketNER
-import subprocess
-import os
+from .stanford_ner_client import SocketNER, load_stanford_tagger
 
 from sklearn.base import BaseEstimator, TransformerMixin
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SERVER_STARTED = False
-
-def load_stanford_tagger():
-    global SERVER_STARTED
-    process = subprocess.Popen([
-        'java',
-        '-mx400m',
-        '-cp',
-        'stanford-ner.jar',
-        'edu.stanford.nlp.ie.NERServer',
-        '-port',
-        '9199',
-        '-loadClassifier',
-        'classifiers/english.muc.7class.distsim.crf.ser.gz'
-    ], cwd=os.path.join(BASE_DIR, 'stanford-ner-2017-06-09/'))
-        # '-tokenizerFactory',
-        # 'edu.stanford.nlp.process.WhitespaceTokenizer',
-        # '-tokenizerOptions',
-        # 'tokenizeNLs=false'
-    print('Stanford server started with PID %s' % process.pid)
-    SERVER_STARTED = True
 
 class Stanford_NER_Chunker(BaseEstimator, TransformerMixin):
 
     def __init__(self, punct=None, tagger=None):
-        global SERVER_STARTED
-        if not SERVER_STARTED:
-            load_stanford_tagger()
-
+        load_stanford_tagger()
         self.punct = punct or set(string.punctuation)
 
         if (tagger == None):

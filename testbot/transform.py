@@ -1,6 +1,6 @@
 from .NLTKPreprocessor import NLTKPreprocessor
-from .Stanford_NER import Stanford_NER_Chunker, load_stanford_tagger
-from .NLTK_NER import NLTK_NER_Chunker
+from .entities.Stanford_NER import Stanford_NER_Chunker, load_stanford_tagger
+from .entities.NLTK_NER import NLTK_NER_Chunker
 from sklearn.feature_extraction.text import TfidfVectorizer
 import os
 import json

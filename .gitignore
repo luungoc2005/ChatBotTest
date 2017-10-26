@@ -64,6 +64,6 @@ django/
 pyner/
 pyner
 
-testbot/stanford-ner-2017-06-09/
+testbot/entities/stanford-ner-2017-06-09/
 
 testbot/stanford-ner-2017-06-09\.zip
