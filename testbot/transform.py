@@ -2,6 +2,10 @@ from .NLTKPreprocessor import NLTKPreprocessor
 from .entities.Stanford_NER import Stanford_NER_Chunker, load_stanford_tagger
 from .entities.NLTK_NER import NLTK_NER_Chunker
 from sklearn.feature_extraction.text import TfidfVectorizer
+from recurrent import RecurringEvent
+from datetime import datetime
+from .train import test_model
+import pytz
 import os
 import json
 
@@ -22,7 +26,7 @@ def identity(arg):
 
 def tokenize_text(text):
     global STOPWORDS
-
+    r = RecurringEvent(now_date=datetime.now(pytz.utc))
     load_stanford_tagger()
     chunker = Stanford_NER_Chunker()
     # chunker = NLTK_NER_Chunker()
@@ -34,11 +38,26 @@ def tokenize_text(text):
 
     # preprocessed = preprocessor.transform([text])
     chunked = chunker.transform([text])
+    named_entities = []
+    
+    for sentence in chunked:
+        for (text, tag) in sentence:
+            item = {
+                'text': text,
+                'entity': tag,
+            }
+            if tag in ['sys.date', 'sys.time']:
+                date_result = r.parse(text)
+                if date_result:
+                    item['resolution'] = date_result.isoformat()
+            named_entities.append(item)
+
     data = {
         # 'preprocessed': preprocessed,
-        'entities': chunked
+        'classification': test_model(text),
+        'entities': named_entities
     }
-    return json.dumps(data, sort_keys=True, indent=4)
+    return data
 
 
 def test_transform(data):

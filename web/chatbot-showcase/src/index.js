@@ -4,7 +4,8 @@ import './index.css';
 import App from './App';
 import registerServiceWorker from './registerServiceWorker';
 
-import 'regenerator-runtime/runtime';
+/// Generators polyfill for redux-saga.
+window.regeneratorRuntime = require("regenerator-runtime");
 
 ReactDOM.render(<App />, document.getElementById('root'));
 registerServiceWorker();

@@ -4,9 +4,47 @@ import os
 import psutil
 import sys
 from contextlib import contextmanager
+from threading import Thread
+from queue import Queue, Empty
+
+class NonBlockingStreamReader:
+
+    def __init__(self, stream):
+        '''
+        stream: the stream to read from.
+                Usually a process' stdout or stderr.
+        '''
+
+        self._s = stream
+        self._q = Queue()
+
+        def _populateQueue(stream, queue):
+            '''
+            Collect lines from 'stream' and put them in 'quque'.
+            '''
+
+            while True:
+                line = stream.readline()
+                if line:
+                    queue.put(line)
+                else:
+                    raise UnexpectedEndOfStream
+
+        self._t = Thread(target = _populateQueue,
+                args = (self._s, self._q))
+        self._t.daemon = True
+        self._t.start() #start collecting lines from the stream
+
+    def readline(self, timeout = None):
+        try:
+            return self._q.get(block = timeout is not None,
+                    timeout = timeout)
+        except Empty:
+            return None
+
+class UnexpectedEndOfStream(Exception): pass
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 
 def stanford_server_running():
     for pid in psutil.pids():
@@ -24,7 +62,7 @@ def stanford_server_running():
 
 def load_stanford_tagger():
     if not stanford_server_running():
-        CLASSIFIER_FILE = 'english.muc.7class.distsim.crf.ser.gz'
+        CLASSIFIER_FILE = 'english.muc.7class.caseless.distsim.crf.ser.gz'
         process = subprocess.Popen([
             'java',
             '-mx400m',
@@ -37,20 +75,19 @@ def load_stanford_tagger():
             'classifiers/' + CLASSIFIER_FILE
         ], \
         cwd=os.path.join(BASE_DIR, 'stanford-ner-2017-06-09/'), \
-        stdout=subprocess.PIPE)
-        # '-tokenizerFactory',
-        # 'edu.stanford.nlp.process.WhitespaceTokenizer',
-        # '-tokenizerOptions',
-        # 'tokenizeNLs=false'
-        print('Stanford server started with PID %s' % process.pid)
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
         # The stanford process will print out something like this line
         # Loading classifier from classifiers/english.muc.7class.distsim.crf.ser.gz ... done [23.4 sec].
         # Wait for that line to continue execution to avoid connection refused errors
-        for line in iter(process.stdout.readline, ''):
-            print(line)
-            if CLASSIFIER_FILE in line:
-                return
+        nbsr = NonBlockingStreamReader(process.stdout)
+        while True:
+            line = nbsr.readline(10)
+            if line and CLASSIFIER_FILE in line:
+                print(line)
+                break
+        print('Stanford server started with PID %s' % process.pid)
+    return
 
 @contextmanager
 def tcpip4_socket(host, port):

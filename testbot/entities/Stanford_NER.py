@@ -14,10 +14,21 @@ from .stanford_ner_client import SocketNER, load_stanford_tagger
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
+ENTITY_TYPES = {
+    'LOCATION': 'sys.location',
+    'PERSON': 'sys.person',
+    'ORGANIZATION': 'sys.organization',
+    'MONEY': 'sys.money',
+    'PERCENT': 'sys.percent',
+    'DATE': 'sys.date',
+    'TIME': 'sys.time'
+}
+
 class Stanford_NER_Chunker(BaseEstimator, TransformerMixin):
 
     def __init__(self, punct=None, tagger=None):
         load_stanford_tagger()
+
         self.punct = punct or set(string.punctuation)
 
         if (tagger == None):
@@ -48,7 +59,10 @@ class Stanford_NER_Chunker(BaseEstimator, TransformerMixin):
                     ne_label = subtree.label()
                     ne_string = " ".join(
                         [token for token, pos in subtree.leaves()])
-                    yield (ne_string, ne_label)
+                    if ne_label in ENTITY_TYPES:
+                        yield (ne_string, ENTITY_TYPES[ne_label])
+                    else:
+                        yield (ne_string, ne_label)
 
     def bio_tagger(self, ne_tagged):
         bio_tagged = []

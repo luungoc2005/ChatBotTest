@@ -155,10 +155,10 @@ def test_model(text=''):
         labels_data = sorted(
             labels_data, key=lambda item: item[1], reverse=True)
 
-        for line in labels_data:
-            print("%s %s - Confidence: %s" % (model_name, line[0], line[1]))
+        # for line in labels_data:
+        #     print("%s %s - Confidence: %s" % (model_name, line[0], line[1]))
 
-        return str(labels_data[0][0])
+        return labels_data
 
     global TRAINED_MODEL
     if TRAINED_MODEL == None:  # Load the dumped model
@@ -169,12 +169,18 @@ def test_model(text=''):
     print("\n# Topic model")
     topic_model = model['topic_clf']
     topic = result_from_model(topic_model, text, 'Topic')
+    final_topic = topic[0][0]
 
     print("\n# Intent model")
-    intent_model = model['topics'][topic]
+    intent_model = model['topics'][final_topic]
     intent = result_from_model(intent_model, text, 'Intent')
-    print("\nFinal intent: %s" % intent)
-
+    final_intent = intent[0][0]
+    print("\nFinal intent: %s" % final_intent)
+    return {
+        'final_intent': final_intent,
+        'topics': topic,
+        'intents': intent
+    }
 
 def run_input_test():
     user_msg = ''

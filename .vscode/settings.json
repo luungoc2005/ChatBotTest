@@ -1,5 +1,6 @@
 {
   "python.linting.pylintArgs": [
     "--indent-string=\"  \""
-  ]
+  ],
+  "python.pythonPath": "/Users/2359media/anaconda/envs/chatbot/bin/python"
 }

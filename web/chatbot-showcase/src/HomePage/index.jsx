@@ -1,18 +1,53 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Flex, Box} from 'rebass';
+import {connect} from 'react-redux';
+import {TealInput} from '../components/Input';
+import {getResponseRequest} from './actions';
 
 export class HomePage extends Component {
+  static propTypes = {
+    getResponseRequest: PropTypes.func,
+    response: PropTypes.string,
+  }
+
+  constructor() {
+    super();
+    this.state = {
+      input: ''
+    }
+  }
+
+  handleKeyPress(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.props.getResponseRequest(this.state.input);
+      this.setState({input: ''});
+    }
+  }
   render() {
     return (
-      <Flex p={1}>
-        <Box w={1/3}>
-          
-        </Box>
-        <Box w={1/3} mx={1}>
-
-        </Box>
-      </Flex>
+      <div>
+        <TealInput 
+          value={this.state.input} 
+          onChange={(event) => this.setState({input: event.target.value})}
+          onKeyPress={(event) => this.handleKeyPress(event)}
+        />
+        <pre>{this.props.response}</pre>
+      </div>
     )
   }
 }
+
+const mapStateToProps = (state) => {
+  return {
+    response: state.home.response.payload
+  }
+}
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    getResponseRequest: (text) => dispatch(getResponseRequest(text))
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(HomePage)
