@@ -45,12 +45,12 @@ class Word2VecVectorizer(BaseEstimator, TransformerMixin):
         pad_size = self.sent_size - len(X)
         if pad_size > 0:
             return np.pad([
-                self.word2vec.get(w, [np.zeros(self.dim)]) 
+                self.word2vec.get(w, np.zeros(self.dim)) 
                 for w in X
             ], ((0, pad_size), (0, 0)), 'constant')
         else:
             return np.array([
-                self.word2vec.get(w, [np.zeros(self.dim)]) 
+                self.word2vec.get(w, np.zeros(self.dim)) 
                 for w in X[:self.sent_size]
             ])
         """
@@ -59,12 +59,12 @@ class Word2VecVectorizer(BaseEstimator, TransformerMixin):
         pad_size = self.sent_size - len(X)
         if pad_size > 0:
             return np.pad([
-                np.mean(self.word2vec.get(w, [np.zeros(self.dim)]) * self.word2weight[w])
+                np.mean(self.word2vec.get(w, np.zeros(self.dim)) * self.word2weight[w])
                 for w in X
             ], (0, pad_size), 'constant')
         else:
             return np.array([
-                np.mean(self.word2vec.get(w, [np.zeros(self.dim)]) * self.word2weight[w])
+                np.mean(self.word2vec.get(w, np.zeros(self.dim)) * self.word2weight[w])
                 for w in X[:self.sent_size]
             ])
         """
@@ -74,11 +74,11 @@ class Word2VecVectorizer(BaseEstimator, TransformerMixin):
         pad_size = self.sent_size - len(X)
         if pad_size > 0:
             return np.pad([
-                np.mean(self.word2vec.get(w, [np.zeros(self.dim)]))
+                np.mean(self.word2vec.get(w, np.zeros(self.dim)))
                 for w in X
             ], (0, pad_size), 'constant')
         else:
             return np.array([
-                np.mean(self.word2vec.get(w, [np.zeros(self.dim)]))
+                np.mean(self.word2vec.get(w, np.zeros(self.dim)))
                 for w in X[:self.sent_size]
             ])
