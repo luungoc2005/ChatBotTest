@@ -79,7 +79,7 @@ def transform_examples(text_array):
     }
 
 # With input_data in the form of (example, intent)
-def transform_all_input(input_data):
+def transform_train_input(input_data):
     X_train = []
     Y_train = []
 
@@ -89,18 +89,18 @@ def transform_all_input(input_data):
     
     # Transform Y_train
     labels = LabelBinarizer()
-    Y_train = labels.fit_transform(Y_train)
+    Y_train = np.array(labels.fit_transform(Y_train)).astype('float32')
 
     # Transform X_train
     X_transform = transform_examples(X_train)
-    X_char = np.concatenate( \
+    X_char = np.array(np.concatenate( \
         (X_transform['pos_input'], \
         X_transform['char_input']), \
-        axis=2)
-    X_w2v = np.concatenate( \
+        axis=2)).astype('float32')
+    X_w2v = np.array(np.concatenate( \
         (X_transform['pos_input'], \
         X_transform['w2v_input']), \
-        axis=2)
+        axis=2)).astype('float32')
     
     return {
         'X_char': X_char,
@@ -127,11 +127,11 @@ def transform_X_input(text, data_model):
     X_char = np.array([np.concatenate( \
         (pos_input, \
         char_input), \
-        axis=1)], dtype='float16')
+        axis=1)]).astype('float32')
     X_w2v = np.array([np.concatenate( \
         (pos_input, \
         w2v_input), \
-        axis=1)], dtype='float16')
+        axis=1)]).astype('float32')
     
     return {
         'X_char': X_char,

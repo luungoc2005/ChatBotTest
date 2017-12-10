@@ -24,7 +24,7 @@ def init_w2v():
             print('Importing %s...' % (WORD2VEC_FILE + '.txt'))
             with open(WORD2VEC_FILE + '.txt', 'r') as lines:
                 WORD2VEC = {
-                    line.split()[0]: np.array(list(map(float, line.split()[1:])), dtype='float16')
+                    line.split()[0]: np.array(list(map(float, line.split()[1:])), dtype='float32')
                     for line in lines
                 }
             with open(WORD2VEC_FILE + '.pickle', 'wb') as pickle_file:
@@ -61,8 +61,8 @@ class Word2VecVectorizer(BaseEstimator, TransformerMixin):
         self.dim =  self.w2v_dim # + self.punct_length
 
     # def get_weight(self, punct):
-    #     return np.append(np.zeros(self.w2v_dim, dtype='float16'),
-    #         np.array([1.0 if punct == X else 0.0 for X in self.punct], dtype='float16'))
+    #     return np.append(np.zeros(self.w2v_dim, dtype='float32'),
+    #         np.array([1.0 if punct == X else 0.0 for X in self.punct], dtype='float32'))
 
     def transform_single(self, w):
         # return np.pad(self.word2vec[w], (0, self.punct_length), 'constant') \
@@ -70,7 +70,7 @@ class Word2VecVectorizer(BaseEstimator, TransformerMixin):
         #     else self.get_weight(w)
         return self.word2vec[w] \
             if w in self.word2vec.keys() \
-            else np.zeros(self.dim, dtype='float16')
+            else np.zeros(self.dim, dtype='float32')
 
     def inverse_transform_single(self, X):
         # X_vec = X[:self.w2v_dim]
@@ -97,7 +97,7 @@ class Word2VecVectorizer(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         if not X:
-            return np.zeros((self.sent_size, self.dim), dtype='float16')
+            return np.zeros((self.sent_size, self.dim), dtype='float32')
         return [
             list(self.transform_sent(doc)) for doc in X
         ]

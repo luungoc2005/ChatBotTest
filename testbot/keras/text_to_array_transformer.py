@@ -6,7 +6,7 @@ def transform_word(word, ndim=10):
         for char in word[0:ndim-1]
     ])
     if len(result) == ndim:
-        return np.array(result, dtype='float16')
+        return np.array(result, dtype='float32')
     else:
         return np.array( \
             np.pad(result, (0, ndim-len(result)), 'constant'))
