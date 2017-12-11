@@ -11,7 +11,7 @@ from nltk import pos_tag
 # from sklearn.feature_extraction.text import TfidfVectorizer
 
 WORD2VEC = None
-WORD2VEC_FILE = 'glove/glove.6B.100d'
+WORD2VEC_FILE = 'glove/glove.6B.300d'
 
 def init_w2v():
     global WORD2VEC

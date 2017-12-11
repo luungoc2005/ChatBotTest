@@ -110,13 +110,17 @@ def build_model():
 
     batch_size = min([len(X_char), 16])
 
-    model.fit([X_char, X_w2v], [Y_train, Y_train, Y_train], 
-        epochs=10000, 
-        batch_size=batch_size,
-        callbacks=callbacks,
-        shuffle=True)
+    try:
+        model.fit([X_char, X_w2v], [Y_train, Y_train, Y_train], 
+            epochs=10000, 
+            batch_size=batch_size,
+            callbacks=callbacks,
+            shuffle=True)
 
-    model.save_weights(WEIGHTS_PATH)
+        model.save_weights(WEIGHTS_PATH)
+    except KeyboardInterrupt:
+        model.save_weights(WEIGHTS_PATH)
+
 
 DATA_OBJ = None
 MODEL_OBJ = None
