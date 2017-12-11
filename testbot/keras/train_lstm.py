@@ -7,7 +7,7 @@ from keras.utils import to_categorical
 from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
 from keras import regularizers
 
-from .data import *
+from .data_lstm import *
 from .test_data import *
 from ..models import Example
 
@@ -35,29 +35,29 @@ def build_model():
     X_w2v = data['X_w2v']
     Y_train = data['Y_train']
     classes = len(data['_labels'].classes_)
-    with open(DATA_PATH + '.pickle', 'wb') as pickle_file:
+    with open(DATA_PATH, 'wb') as pickle_file:
         pickle.dump(data, pickle_file)
 
     input_chr = Input(shape=(X_char.shape[1], X_char.shape[2]), dtype='float32', name='chr_input')
-    lstm_chr = LSTM(32)(input_chr)
+    lstm_chr = LSTM(6)(input_chr)
     lstm_chr = Dropout(0.2)(lstm_chr)
     output_chr = Dense(classes, activation='sigmoid', name='chr_output')(lstm_chr)
 
     input_w2v = Input(shape=(X_w2v.shape[1], X_w2v.shape[2]), dtype='float32', name='w2v_input')
-    lstm_w2v = LSTM(64)(input_w2v)
+    lstm_w2v = LSTM(32)(input_w2v)
     lstm_w2v = Dropout(0.2)(lstm_w2v)
     output_w2v = Dense(classes, activation='sigmoid', name='w2v_output')(lstm_w2v)
 
     x = concatenate([lstm_chr, lstm_w2v])
-    x = Dense(64, activation='relu')(x)
-    x = Dense(64, activation='relu')(x)
+    x = Dense(16, activation='relu')(x)
+    x = Dropout(0.5)(x)
 
     main_output = Dense(classes, activation='sigmoid', name='main_output')(x)
 
     model = Model(inputs=[input_chr, input_w2v], outputs=[main_output, output_chr, output_w2v])
     model.compile(optimizer='nadam', 
         loss='binary_crossentropy', 
-        loss_weights={'main_output': 1., 'chr_output': 0.3, 'w2v_output': 0.7})
+        loss_weights={'main_output': 0.5, 'chr_output': 0.2, 'w2v_output': 0.3})
 
     callbacks = [
         TensorBoard(log_dir='./logs'),
@@ -68,8 +68,8 @@ def build_model():
             mode='min',
             period=500),
         EarlyStopping(monitor='loss', 
-            min_delta=0.001, 
-            patience=10, 
+            min_delta=0.0001, 
+            patience=500, 
             verbose=1, 
             mode='auto')
     ]
@@ -93,7 +93,7 @@ def load_model(input_model=None):
     global DATA_OBJ, MODEL_OBJ
 
     if not DATA_OBJ or not MODEL_OBJ:
-        with open(DATA_PATH + '.pickle', 'rb') as pickle_file:
+        with open(DATA_PATH, 'rb') as pickle_file:
             data = pickle.load(pickle_file)
 
         with open(ARCH_PATH, 'r') as model_arch:
@@ -124,7 +124,14 @@ def test_model(text, input_model=None):
         verbose=0)
 
     max_point = result[0][0].argmax()
+    sum_proba = sum(result[0][0])
+    sum_chars_proba = sum(result[1][0])
+    sum_w2v_proba = sum(result[2][0])
 
-    print((data['_labels'].classes_[max_point], result[0][0][max_point]))
+    proba = result[0][0][max_point] / sum_proba * 100
+    chars_proba = result[1][0][max_point] / sum_chars_proba * 100
+    w2v_proba = result[2][0][max_point] / sum_w2v_proba * 100
+
+    print((data['_labels'].classes_[max_point], proba, chars_proba, w2v_proba))
 
     return result

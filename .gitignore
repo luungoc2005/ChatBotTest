@@ -75,3 +75,5 @@ glove/
 *.h5
 
 *.pickle
+
+20_newsgroups/
