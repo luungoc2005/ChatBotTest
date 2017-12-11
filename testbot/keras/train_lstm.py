@@ -77,7 +77,7 @@ def build_model():
     with open(ARCH_PATH, 'w') as model_arch:
         model_arch.write(model.to_json())
 
-    batch_size = max([len(X_char), 16])
+    batch_size = min([len(X_char), 16])
 
     model.fit([X_char, X_w2v], [Y_train, Y_train, Y_train], 
         epochs=10000, 

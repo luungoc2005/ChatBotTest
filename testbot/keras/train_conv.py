@@ -19,11 +19,11 @@ DATA_PATH = 'models/model.pickle'
 FILTER_SIZES = [3, 4, 5]
 
 def build_model():
-    data = [
-        (item.text, item.intent.name) 
-        for item in list(Example.objects.all())
-    ]
-
+    # data = [
+    #     (item.text, item.intent.name) 
+    #     for item in list(Example.objects.all())
+    # ]
+    data = list(to_list(load_from_json('kc_data.json')))
     data = transform_train_input(data)
 
     # return {
@@ -37,6 +37,13 @@ def build_model():
     X_w2v = data['X_w2v']
     Y_train = data['Y_train']
     classes = len(data['_labels'].classes_)
+
+    print('Data statistics:')
+    print('Character inputs matrix has shape %s' % str(X_char.shape))
+    print('GloVE input matrix has shape %s' % str(X_w2v.shape))
+    print('Target classes has shape %s' % str(Y_train.shape))
+    print('Number of classes: %s' % classes)
+
     with open(DATA_PATH, 'wb') as pickle_file:
         pickle.dump(data, pickle_file)
     
@@ -79,8 +86,9 @@ def build_model():
 
     model = Model(inputs=[input_chr, input_w2v], outputs=[main_output, output_chr, output_w2v])
     model.compile(optimizer='rmsprop', 
-        loss='binary_crossentropy', 
-        loss_weights={'main_output': 0.5, 'chr_output': 0.2, 'w2v_output': 0.3})
+        loss='binary_crossentropy',
+        loss_weights={'main_output': 0.5, 'chr_output': 0.2, 'w2v_output': 0.3},
+        metrics=['accuracy'])
 
     callbacks = [
         TensorBoard(log_dir='./logs'),
@@ -100,12 +108,13 @@ def build_model():
     with open(ARCH_PATH, 'w') as model_arch:
         model_arch.write(model.to_json())
 
-    batch_size = max([len(X_char), 16])
+    batch_size = min([len(X_char), 16])
 
     model.fit([X_char, X_w2v], [Y_train, Y_train, Y_train], 
         epochs=10000, 
         batch_size=batch_size,
-        callbacks=callbacks)
+        callbacks=callbacks,
+        shuffle=True)
 
     model.save_weights(WEIGHTS_PATH)
 
@@ -147,13 +156,13 @@ def test_model(text, input_model=None):
         verbose=0)
 
     max_point = result[0][0].argmax()
-    sum_proba = sum(result[0][0])
-    sum_chars_proba = sum(result[1][0])
-    sum_w2v_proba = sum(result[2][0])
+    # sum_proba = sum(result[0][0])
+    # sum_chars_proba = sum(result[1][0])
+    # sum_w2v_proba = sum(result[2][0])
 
-    proba = result[0][0][max_point] / sum_proba * 100
-    chars_proba = result[1][0][max_point] / sum_chars_proba * 100
-    w2v_proba = result[2][0][max_point] / sum_w2v_proba * 100
+    proba = result[0][0][max_point] * 100
+    chars_proba = result[1][0][max_point] * 100
+    w2v_proba = result[2][0][max_point] * 100
 
     print((data['_labels'].classes_[max_point], proba, chars_proba, w2v_proba))
 

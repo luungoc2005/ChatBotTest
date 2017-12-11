@@ -6,7 +6,7 @@ from sklearn.preprocessing import LabelBinarizer
 
 TOKEN_SIZE = 10
 
-def transform_text(text, ndim=50):
+def transform_text(text, ndim=70):
     pos_transformer = NLTKPreprocessor()
     w2v_transformer = Word2VecVectorizer()
     
@@ -22,7 +22,7 @@ def transform_text(text, ndim=50):
         for word_idx, word in enumerate(sent):
             # yield in the form of tag, token, w2v
             count += 1
-            if count == ndim:
+            if count > ndim:
                 raise StopIteration
             else:
                 yield ( \

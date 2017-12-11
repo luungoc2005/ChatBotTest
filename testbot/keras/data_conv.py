@@ -3,14 +3,16 @@ from .nltk_pos_transformer import NLTKPreprocessor
 from .w2v_padding_transformer import Word2VecVectorizer
 from .text_to_array_transformer import transform_word
 from sklearn.preprocessing import LabelBinarizer
+import re
 
 TOKEN_SIZE = 10
 
-def transform_text(text, ndim=50):
+def transform_text(text, ndim=70):
     pos_transformer = NLTKPreprocessor()
     w2v_transformer = Word2VecVectorizer()
     
-    data = [text]
+    # data = [text]
+    data = [re.sub(' +',' ',text)]
     pos_token_data = pos_transformer.transform(data)
     # pos_token_data is in the format: array of [(token, tag)]
 
@@ -19,10 +21,12 @@ def transform_text(text, ndim=50):
     count = 0
 
     for sent_idx, sent in enumerate(pos_token_data):
+        if len(sent) > ndim:
+            print('Warning: sentence \n%s\nhas length of %s, which exceeds the limit' % (sent, str(len(sent))))
         for word_idx, word in enumerate(sent):
             # yield in the form of tag, token, w2v
             count += 1
-            if count == ndim:
+            if count > ndim:
                 raise StopIteration
             else:
                 yield ( \
