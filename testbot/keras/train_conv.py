@@ -93,7 +93,9 @@ def build_model():
     batch_size = min([len(X_char), 16])
 
     callbacks = [
-        TensorBoard(log_dir='./logs', 
+        TensorBoard(log_dir='./logs',
+            histogram_freq=1,
+            write_graph=True,
             write_images=True, 
             write_grads=True,
             batch_size=batch_size),
