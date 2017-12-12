@@ -85,7 +85,7 @@ def build_model():
     main_output = Dense(classes, activation='softmax', name='main_output')(x)
 
     model = Model(inputs=[input_chr, input_w2v], outputs=[main_output, output_chr, output_w2v])
-    model.compile(optimizer='rmsprop', 
+    model.compile(optimizer='nadam', 
         loss='binary_crossentropy',
         loss_weights={'main_output': 0.5, 'chr_output': 0.2, 'w2v_output': 0.3},
         metrics=['accuracy'])
