@@ -85,13 +85,18 @@ def build_model():
     main_output = Dense(classes, activation='softmax', name='main_output')(x)
 
     model = Model(inputs=[input_chr, input_w2v], outputs=[main_output, output_chr, output_w2v])
-    model.compile(optimizer='nadam', 
+    model.compile(optimizer='adadelta', 
         loss='binary_crossentropy',
         loss_weights={'main_output': 0.5, 'chr_output': 0.2, 'w2v_output': 0.3},
         metrics=['accuracy'])
 
+    batch_size = min([len(X_char), 16])
+
     callbacks = [
-        TensorBoard(log_dir='./logs'),
+        TensorBoard(log_dir='./logs', 
+            write_images=True, 
+            write_grads=True,
+            batch_size=batch_size,
         ModelCheckpoint(FILE_PATH, 
             monitor='loss', 
             verbose=1, 
@@ -107,8 +112,6 @@ def build_model():
 
     with open(ARCH_PATH, 'w') as model_arch:
         model_arch.write(model.to_json())
-
-    batch_size = min([len(X_char), 16])
 
     try:
         model.fit([X_char, X_w2v], [Y_train, Y_train, Y_train], 
