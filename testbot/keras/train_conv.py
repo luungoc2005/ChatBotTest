@@ -94,7 +94,6 @@ def build_model():
 
     callbacks = [
         TensorBoard(log_dir='./logs',
-            histogram_freq=1,
             write_graph=True,
             write_images=True, 
             write_grads=True,
