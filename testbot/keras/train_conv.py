@@ -96,7 +96,7 @@ def build_model():
         TensorBoard(log_dir='./logs', 
             write_images=True, 
             write_grads=True,
-            batch_size=batch_size,
+            batch_size=batch_size),
         ModelCheckpoint(FILE_PATH, 
             monitor='loss', 
             verbose=1, 
