@@ -2,7 +2,9 @@ import numpy as np
 from .nltk_pos_transformer import NLTKPreprocessor
 from .w2v_padding_transformer import Word2VecVectorizer
 from .text_to_array_transformer import transform_word
-from sklearn.preprocessing import LabelBinarizer
+from sklearn.preprocessing import LabelEncoder
+from keras.utils import to_categorical
+import re
 
 TOKEN_SIZE = 10
 
@@ -10,7 +12,8 @@ def transform_text(text, ndim=70):
     pos_transformer = NLTKPreprocessor()
     w2v_transformer = Word2VecVectorizer()
     
-    data = [text]
+    # data = [text]
+    data = [re.sub(' +',' ',text)]
     pos_token_data = pos_transformer.transform(data)
     # pos_token_data is in the format: array of [(token, tag)]
 
@@ -19,6 +22,8 @@ def transform_text(text, ndim=70):
     count = 0
 
     for sent_idx, sent in enumerate(pos_token_data):
+        if len(sent) > ndim:
+            print('Warning: sentence \n%s\nhas length of %s, which exceeds the limit' % (sent, str(len(sent))))
         for word_idx, word in enumerate(sent):
             # yield in the form of tag, token, w2v
             count += 1
@@ -64,11 +69,17 @@ def transform_examples(text_array):
         char_input.append(line_char)
         w2v_input.append(line_w2v)
     
-    pos_labels = LabelBinarizer()
+    if '' not in pos_tag_list: # dummy label for unknown pos tag
+        pos_tag_list.append('')
+
+    pos_labels = LabelEncoder()
     pos_labels.fit(pos_tag_list)
+    classes = len(pos_labels.classes_)
 
     pos_input = [
-        pos_labels.transform(X) for X in pos_input
+        to_categorical(pos_labels.transform(X),
+            num_classes=classes) 
+        for X in pos_input
     ]
 
     return {
@@ -88,8 +99,9 @@ def transform_train_input(input_data):
         Y_train.append(intent)
     
     # Transform Y_train
-    labels = LabelBinarizer()
-    Y_train = np.array(labels.fit_transform(Y_train)).astype('float32')
+    labels = LabelEncoder()
+    Y_train = np.array(labels.fit_transform(Y_train))
+    Y_train = to_categorical(Y_train).astype('float32')
 
     # Transform X_train
     X_transform = transform_examples(X_train)
@@ -122,7 +134,13 @@ def transform_X_input(text, data_model):
         char_input.append(data_point[1]) #token
         w2v_input.append(data_point[2]) #w2v
     
-    pos_input = pos_labels.transform(pos_input)
+    classes = len(pos_labels.classes_)
+    
+    pos_input = [tag 
+        if tag in pos_labels.classes_ else ''
+        for tag in pos_input]
+    pos_input = to_categorical(pos_labels.transform(pos_input), 
+        num_classes=classes)
 
     X_char = np.array([np.concatenate( \
         (pos_input, \

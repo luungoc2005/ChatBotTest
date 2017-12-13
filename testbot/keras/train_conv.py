@@ -38,7 +38,7 @@ def build_model():
     X_w2v = data['X_w2v']
     Y_train = data['Y_train']
     # classes = len(data['_labels'].classes_)
-    classes = Y_train.shape[1]
+    classes = Y_train.shape[1] # fix the case where there are only 2 labels
 
     print('Data statistics:')
     print('Character inputs matrix has shape %s' % str(X_char.shape))
@@ -174,6 +174,6 @@ def test_model(text, input_model=None):
     chars_proba = result[1][0][max_point] * 100
     w2v_proba = result[2][0][max_point] * 100
 
-    print((data['_labels'].classes_[max_point], proba, chars_proba, w2v_proba))
+    print((data['_labels'].inverse_transform([max_point]), proba, chars_proba, w2v_proba))
 
     return result

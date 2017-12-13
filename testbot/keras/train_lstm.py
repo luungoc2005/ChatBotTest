@@ -134,6 +134,6 @@ def test_model(text, input_model=None):
     chars_proba = result[1][0][max_point] / sum_chars_proba * 100
     w2v_proba = result[2][0][max_point] / sum_w2v_proba * 100
 
-    print((data['_labels'].classes_[max_point], proba, chars_proba, w2v_proba))
+    print((data['_labels'].inverse_transform([max_point]), proba, chars_proba, w2v_proba))
 
     return result
