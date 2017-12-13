@@ -23,7 +23,8 @@ def build_model():
     #     (item.text, item.intent.name) 
     #     for item in list(Example.objects.all())
     # ]
-    data = list(to_list(load_from_json('kc_data.json')))
+    # data = list(to_list(load_from_json('kc_data.json')))
+    data = list(to_list(test_data_likes))
     data = transform_train_input(data)
 
     # return {
@@ -36,7 +37,8 @@ def build_model():
     X_char = data['X_char']
     X_w2v = data['X_w2v']
     Y_train = data['Y_train']
-    classes = len(data['_labels'].classes_)
+    # classes = len(data['_labels'].classes_)
+    classes = Y_train.shape[1]
 
     print('Data statistics:')
     print('Character inputs matrix has shape %s' % str(X_char.shape))

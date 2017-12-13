@@ -21,7 +21,7 @@ def build_model():
         (item.text, item.intent.name) 
         for item in list(Example.objects.all())
     ]
-
+    # data = to_list()
     data = transform_train_input(data)
 
     # return {
@@ -34,7 +34,9 @@ def build_model():
     X_char = data['X_char']
     X_w2v = data['X_w2v']
     Y_train = data['Y_train']
-    classes = len(data['_labels'].classes_)
+    # classes = len(data['_labels'].classes_)
+    classes = Y_train.shape[1] # fix the case where there are only 2 labels
+
     with open(DATA_PATH, 'wb') as pickle_file:
         pickle.dump(data, pickle_file)
 
