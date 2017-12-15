@@ -49,9 +49,9 @@ def to_list(test_data):
         for sent in test_data[key]:
             yield (sent, key)
 
-def entities_to_list(test_data, ndim = 50):
+def entities_to_list(test_data, ndim = 70):
     for text, (start, end) in test_data:
-        result_arr = [[1.0] if x >= start and x <= end else [0.0]
+        result_arr = [[1.0, 0.0] if x >= start and x <= end else [0.0, 1.0]
             for x in range(ndim)]
         yield (text, result_arr)
 

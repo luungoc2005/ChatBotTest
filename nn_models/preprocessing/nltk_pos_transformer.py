@@ -12,8 +12,9 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 class NLTKPreprocessor(BaseEstimator, TransformerMixin):
 
-    def __init__(self, strip=True):
+    def __init__(self, strip=True, mutate=True):
         self.strip = strip
+        self.mutate = mutate
         self.lemmatizer = WordNetLemmatizer()
         self.stopwords = set(sw.words('english'))
 
@@ -36,9 +37,9 @@ class NLTKPreprocessor(BaseEstimator, TransformerMixin):
                 # token = token.strip('*') if self.strip else token
 
                 if token.lower() in self.stopwords:
-                    yield ('', tag)
+                    yield ('' if self.mutate else token, tag)
                 else:
-                    yield (self.lemmatize(token, tag), tag)
+                    yield (self.lemmatize(token, tag) if self.mutate else token, tag)
                 # lemma = self.lemmatize(token, tag)
                 # yield lemma
 

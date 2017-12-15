@@ -10,6 +10,7 @@ from keras import regularizers
 
 from nn_models.preprocessing.data_entities import *
 from nn_models.preprocessing.test_data import *
+from nn_models.preprocessing.nltk_pos_transformer import *
 # from ..models import Example
 
 FILE_PATH='models/entities/weights-{epoch:02d}-{loss:.4f}.h5'
@@ -17,15 +18,15 @@ ARCH_PATH='models/entities/model.json'
 WEIGHTS_PATH = 'models/entities/model.h5'
 DATA_PATH = 'models/entities/model.pickle'
 
-RECURRENT_DEPTH = 3
-RECURRENT_UNITS = 128
+RECURRENT_DEPTH = 2
+RECURRENT_UNITS = 32
 
 def build_model():
     # data = [
     #     (item.text, item.intent.name) 
     #     for item in list(Example.objects.all())
     # ]
-    data = list(entities_to_list(test_entities_animals))
+    data = list(entities_to_list(test_entities))
     # data = list(to_list(test_data_likes))
     data = transform_train_input(data)
 
@@ -51,36 +52,34 @@ def build_model():
         pickle.dump(data, pickle_file)
     
     input_chr = Input(shape=(X_char.shape[1], X_char.shape[2]), dtype='float32', name='chr_input')
+
     input_w2v = Input(shape=(X_w2v.shape[1], X_w2v.shape[2]), dtype='float32', name='w2v_input')
 
-    conv_chr = FILTER_SIZES[:]
-    conv_w2v = FILTER_SIZES[:]
+    conv_chr = list(range(RECURRENT_DEPTH))
+    conv_w2v = list(range(RECURRENT_DEPTH))
 
-    NUM_FILTERS = len(FILTER_SIZES)
-    for idx, _ in enumerate(RECURRENT_DEPTH):
-        conv_chr[idx] = Bidirectional(LSTM(RECURRENT_UNITS, return_sequences=True))(input_chr if idx == 0 else conv_chr[idx-1])
+    for idx in range(RECURRENT_DEPTH):
+        conv_chr[idx] = Dropout(0.3)(input_chr if idx == 0 else conv_chr[idx-1])
+        conv_chr[idx] = Bidirectional(LSTM(RECURRENT_UNITS, return_sequences=True))(conv_chr[idx])
         conv_chr[idx] = Dropout(0.5)(conv_chr[idx])
-        # conv_chr[i] = Flatten()(conv_chr[i])
-        # output_chr = Dense(classes, activation='sigmoid', name='chr_output')(lstm_chr)
 
-        conv_w2v[idx] = Bidirectional(LSTM(RECURRENT_UNITS, return_sequences=True))(input_w2v if idx == 0 else conv_w2v[idx-1])
+        conv_w2v[idx] = Dropout(0.3)(input_w2v if idx == 0 else conv_w2v[idx-1])
+        conv_w2v[idx] = Bidirectional(LSTM(RECURRENT_UNITS, return_sequences=True))(conv_w2v[idx])
         conv_w2v[idx] = Dropout(0.5)(conv_w2v[idx])
-        # conv_w2v[i] = Flatten()(conv_w2v[i])
-        # output_w2v = Dense(classes, activation='sigmoid', name='w2v_output')(lstm_w2v)
 
-    output_chr = TimeDistributed(Dense(classes, activation='softmax', name='chr_output'))(conv_chr[RECURRENT_DEPTH - 1])
+    output_chr = TimeDistributed(Dense(classes, activation='softmax'), name='chr_output')(conv_chr[RECURRENT_DEPTH - 1])
 
-    output_w2v = TimeDistributed(Dense(classes, activation='softmax', name='w2v_output'))(conv_w2v[RECURRENT_DEPTH - 1])
+    output_w2v = TimeDistributed(Dense(classes, activation='softmax'), name='w2v_output')(conv_w2v[RECURRENT_DEPTH - 1])
     
-    x = concatenate([conv_chr, conv_w2v])
+    x = concatenate([conv_chr[-1], conv_w2v[-1]])
 
-    main_output = TimeDistributed(Dense(classes, activation='softmax', name='main_output'))(x)
+    main_output = TimeDistributed(Dense(classes, activation='softmax'), name='main_output')(x)
 
     model = Model(inputs=[input_chr, input_w2v], outputs=[main_output, output_chr, output_w2v])
     model.compile(optimizer='adam', 
         loss='categorical_crossentropy',
         loss_weights={'main_output': 0.5, 'chr_output': 0.3, 'w2v_output': 0.2},
-        metrics=['accuracy'])
+        metrics=['categorical_accuracy'])
 
     batch_size = min([len(X_char), 16])
 
@@ -149,10 +148,22 @@ def load_model(input_model=None):
 
 def test_model(text, input_model=None):
     data, model = load_model(input_model=input_model)
+    nltk_transformer = NLTKPreprocessor(mutate=False)
+
     X_input = transform_X_input(text, data)
+    X_pos = nltk_transformer.transform([text])[0]
+
+    text_result = []
     
     result = model.predict([X_input['X_char'], X_input['X_w2v']], 
         batch_size=1, 
         verbose=0)
 
-    return result
+    for idx, (token, tag) in enumerate(X_pos):
+        if result[0][0][idx][0] > 0.5:
+            text_result.append((token, result[0][0][idx][0] * 100, result[0][0][idx][1] * 100))
+
+    entity_text = ' '.join([text for (text, acc1, acc2) in text_result])
+    accuracy = np.mean([acc1 for (text, acc1, acc2) in text_result])
+
+    return text_result
