@@ -7,9 +7,9 @@ from keras.utils import to_categorical
 from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
 from keras import regularizers
 
-from .data_conv import *
-from .test_data import *
-from ..models import Example
+from nn_models.preprocessing.data_conv import *
+from nn_models.preprocessing.test_data import *
+# from ..models import Example
 
 FILE_PATH='models/weights-{epoch:02d}-{loss:.4f}.h5'
 ARCH_PATH='models/model.json'
@@ -23,8 +23,8 @@ def build_model():
     #     (item.text, item.intent.name) 
     #     for item in list(Example.objects.all())
     # ]
-    # data = list(to_list(load_from_json('kc_data.json')))
-    data = list(to_list(test_data_likes))
+    data = list(to_list(load_from_json('kc_data.json')))
+    # data = list(to_list(test_data_likes))
     data = transform_train_input(data)
 
     # return {
@@ -87,11 +87,7 @@ def build_model():
     main_output = Dense(classes, activation='softmax', name='main_output')(x)
 
     model = Model(inputs=[input_chr, input_w2v], outputs=[main_output, output_chr, output_w2v])
-    # model.compile(optimizer='adadelta', 
-    #     loss='binary_crossentropy',
-    #     loss_weights={'main_output': 0.5, 'chr_output': 0.2, 'w2v_output': 0.3},
-    #     metrics=['accuracy'])
-    model.compile(optimizer='rsmprop', 
+    model.compile(optimizer='rmsprop', 
         loss='binary_crossentropy',
         loss_weights={'main_output': 0.5, 'chr_output': 0.2, 'w2v_output': 0.3},
         metrics=['accuracy'])
@@ -109,7 +105,7 @@ def build_model():
             verbose=1, 
             save_best_only=True, 
             mode='min',
-            period=500),
+            period=20),
         EarlyStopping(monitor='loss', 
             min_delta=0.0001, 
             patience=200, 
@@ -122,7 +118,7 @@ def build_model():
 
     try:
         model.fit([X_char, X_w2v], [Y_train, Y_train, Y_train], 
-            epochs=10000, 
+            epochs=5000, 
             batch_size=batch_size,
             callbacks=callbacks,
             shuffle=True)
@@ -175,9 +171,9 @@ def test_model(text, input_model=None):
     # sum_w2v_proba = sum(result[2][0])
 
     proba = result[0][0][max_point] * 100
-    chars_proba = result[1][0][max_point] * 100
-    w2v_proba = result[2][0][max_point] * 100
+    # chars_proba = result[1][0][max_point] * 100
+    # w2v_proba = result[2][0][max_point] * 100
 
-    print((data['_labels'].inverse_transform([max_point]), proba, chars_proba, w2v_proba))
+    print((data['_labels'].inverse_transform([max_point]), proba))
 
     return result

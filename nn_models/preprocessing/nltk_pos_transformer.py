@@ -32,14 +32,13 @@ class NLTKPreprocessor(BaseEstimator, TransformerMixin):
         for sent in sent_tokenize(document):
             for token, tag in pos_tag(wordpunct_tokenize(sent)):
                 token = token.strip() if self.strip else token
-                token = token.strip('_') if self.strip else token
-                token = token.strip('*') if self.strip else token
+                # token = token.strip('_') if self.strip else token
+                # token = token.strip('*') if self.strip else token
 
-                if token in self.stopwords:
+                if token.lower() in self.stopwords:
                     yield ('', tag)
                 else:
-                    lemma = self.lemmatize(token.lower(), tag)
-                    yield (lemma, tag)
+                    yield (self.lemmatize(token, tag), tag)
                 # lemma = self.lemmatize(token, tag)
                 # yield lemma
 
