@@ -26,8 +26,8 @@ def build_model():
     #     (item.text, item.intent.name) 
     #     for item in list(Example.objects.all())
     # ]
-    data = list(entities_to_list(test_entities))
-    # data = list(to_list(test_data_likes))
+    # data = list(entities_to_list(test_entities))
+    data = list(entities_to_list(test_entities_animals))
     data = transform_train_input(data)
 
     # return {
